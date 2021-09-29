@@ -1,3 +1,4 @@
+#include <fmt/core.h>
 #include "abcg.hpp"
 #include "openglwindow.hpp"//openglwindow class definition
 
