@@ -43,6 +43,39 @@ void OpenGLWindow::paintUI() {
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
                 1000.0 / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 
+    // 100x50 button
+    if (ImGui::Button("Press me!", ImVec2(100, 50))) {
+    fmt::print("Button pressed.\n");
+    }
+
+    // Nx50 button, where N is the remaining width available
+    ImGui::Button("Press me!", ImVec2(-1, 50));
+    // See also IsItemHovered, IsItemActive, etc
+    if (ImGui::IsItemClicked()) {
+    fmt::print("Button pressed.\n");
+    }
+
+    static bool enabled{true};
+    ImGui::Checkbox("Some option", &enabled);
+    fmt::print("The checkbox is {}\n", enabled ? "enabled" : "disabled");
+
+    // static std::size_t currentIndex{};
+    // std::vector<std::string> comboItems{"AAA", "BBB", "CCC"};
+
+    // if (ImGui::BeginCombo("Combo box", comboItems.at(currentIndex).c_str())) {
+    // for (auto index{0u}; index < comboItems.size(); ++index) {
+    //     const bool isSelected{currentIndex == index};
+    //     if (ImGui::Selectable(comboItems.at(index).c_str(), isSelected))
+    //     currentIndex = index;
+
+    //     // Set the initial focus when opening the combo (scrolling + keyboard
+    //     // navigation focus)
+    //     if (isSelected) ImGui::SetItemDefaultFocus();
+    // }
+    // ImGui::EndCombo();
+    // }
+
+    // fmt::print("Selected combo box item: {}\n", comboItems.at(currentIndex));
     // Window end
     ImGui::End();
   }
