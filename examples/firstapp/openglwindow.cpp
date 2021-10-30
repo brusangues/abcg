@@ -4,21 +4,31 @@
 
 #include <imgui.h>
 
+#include <cppitertools/itertools.hpp>
+#include <glm/vec2.hpp>
+#include <glm/vec3.hpp>
+#include <gsl/gsl>
+
 void OpenGLWindow::initializeGL() {
+  // called only once
   auto windowSettings{getWindowSettings()};
   fmt::print("Initial window size: {}x{}\n", windowSettings.width,
              windowSettings.height);
 }
 
 void OpenGLWindow::paintGL() {
-  // Set the clear color
+  // Called once per frame update
+
+  // Set the clear color - used to clear the window every frame. RGBA
   abcg::glClearColor(m_clearColor[0], m_clearColor[1], m_clearColor[2],
                      m_clearColor[3]);
   // Clear the color buffer
-  abcg::glClear(GL_COLOR_BUFFER_BIT);
+  abcg::glClear(GL_COLOR_BUFFER_BIT); // uses constant
 }
 
 void OpenGLWindow::paintUI() {
+  // Called every time paintGL is called
+
   // Parent class will show fullscreen button and FPS meter
   abcg::OpenGLWindow::paintUI();
 
@@ -45,37 +55,38 @@ void OpenGLWindow::paintUI() {
 
     // 100x50 button
     if (ImGui::Button("Press me!", ImVec2(100, 50))) {
-    fmt::print("Button pressed.\n");
+      fmt::print("Button pressed.\n");
     }
 
     // Nx50 button, where N is the remaining width available
     ImGui::Button("Press me!", ImVec2(-1, 50));
     // See also IsItemHovered, IsItemActive, etc
     if (ImGui::IsItemClicked()) {
-    fmt::print("Button pressed.\n");
+      fmt::print("Button pressed.\n");
     }
 
     static bool enabled{true};
     ImGui::Checkbox("Some option", &enabled);
-    fmt::print("The checkbox is {}\n", enabled ? "enabled" : "disabled");
+    //fmt::print("The checkbox is {}\n", enabled ? "enabled" : "disabled");
 
-    // static std::size_t currentIndex{};
-    // std::vector<std::string> comboItems{"AAA", "BBB", "CCC"};
+    static std::size_t currentIndex{};
+    std::vector<std::string> comboItems{"AAA", "BBB", "CCC"};
 
-    // if (ImGui::BeginCombo("Combo box", comboItems.at(currentIndex).c_str())) {
-    // for (auto index{0u}; index < comboItems.size(); ++index) {
-    //     const bool isSelected{currentIndex == index};
-    //     if (ImGui::Selectable(comboItems.at(index).c_str(), isSelected))
-    //     currentIndex = index;
+    if (ImGui::BeginCombo("Combo box", comboItems.at(currentIndex).c_str())) {
+    for (auto index{0u}; index < comboItems.size(); ++index) {
+        const bool isSelected{currentIndex == index};
+        if (ImGui::Selectable(comboItems.at(index).c_str(), isSelected))
+        currentIndex = index;
 
-    //     // Set the initial focus when opening the combo (scrolling + keyboard
-    //     // navigation focus)
-    //     if (isSelected) ImGui::SetItemDefaultFocus();
-    // }
-    // ImGui::EndCombo();
-    // }
+        // Set the initial focus when opening the combo (scrolling + keyboard
+        // navigation focus)
+        if (isSelected) ImGui::SetItemDefaultFocus();
+    }
+    ImGui::EndCombo();
+    }
 
-    // fmt::print("Selected combo box item: {}\n", comboItems.at(currentIndex));
+    fmt::print("Selected combo box item: {}\n", comboItems.at(currentIndex));
+
     // Window end
     ImGui::End();
   }
