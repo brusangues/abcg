@@ -12,6 +12,7 @@ ABCg is licensed under the MIT License. See [LICENSE](https://github.com/hbatage
 ```bat
 :: Build
 build.bat
+
 :: Run
 .\build\bin\helloworld\helloworld.exe
 
@@ -20,4 +21,3 @@ C:\emsdk\emsdk_env.bat
 build-wasm.bat
 runweb.bat
 ```
-### How to build webassembly
