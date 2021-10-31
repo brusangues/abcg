@@ -8,6 +8,7 @@
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>
 #include <gsl/gsl>
+#include <string>
 
 void OpenGLWindow::initializeGL() {
   // called only once
@@ -30,15 +31,19 @@ void OpenGLWindow::paintUI() {
   // Called every time paintGL is called
 
   // Parent class will show fullscreen button and FPS meter
-  abcg::OpenGLWindow::paintUI();
+  //abcg::OpenGLWindow::paintUI();
 
+  static bool turn{};
+  string greeting = "Hello";
   // Our own ImGui widgets go below
   {
     // Window begin
-    ImGui::Begin("Hello, First App!");
+    ImGui::Begin("Tit-Tac-Toe!");
 
     // Static text
-    auto windowSettings{getWindowSettings()};
+    if(turn){
+
+    }
     ImGui::Text("Current window size: %dx%d (in windowed mode)",
                 windowSettings.width, windowSettings.height);
 
