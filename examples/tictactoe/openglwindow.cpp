@@ -15,6 +15,7 @@ void OpenGLWindow::initializeGL() {
   auto windowSettings{getWindowSettings()};
   fmt::print("Initial window size: {}x{}\n", windowSettings.width,
              windowSettings.height);
+  ttt.printBoard();
 }
 
 void OpenGLWindow::paintGL() {
@@ -33,65 +34,43 @@ void OpenGLWindow::paintUI() {
   // Parent class will show fullscreen button and FPS meter
   //abcg::OpenGLWindow::paintUI();
 
-  static bool turn{};
-  string greeting = "Hello";
   // Our own ImGui widgets go below
   {
+    // If this is the first frame, set initial position of our window
+    static bool firstTime{true};
+    if (firstTime) {
+      ImGui::SetNextWindowPos(ImVec2(5, 75));
+      ImGui::SetNextWindowSize(ImVec2(300,300));
+      firstTime = false;
+    }
+
     // Window begin
     ImGui::Begin("Tit-Tac-Toe!");
 
     // Static text
-    if(turn){
-
-    }
-    ImGui::Text("Current window size: %dx%d (in windowed mode)",
-                windowSettings.width, windowSettings.height);
-
-    // Slider from 0.0f to 1.0f
-    static float f{};
-    ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-
-    // ColorEdit to change the clear color
-    ImGui::ColorEdit3("clear color", m_clearColor.data());
-
-    // More static text
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
-                1000.0 / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    ImGui::Text("%c turn", ttt.getPlayer());
 
     // 100x50 button
-    if (ImGui::Button("Press me!", ImVec2(100, 50))) {
-      fmt::print("Button pressed.\n");
+    if (ImGui::Button("Print board")) {
+      fmt::print("Board:\n");
+      ttt.printBoard();
     }
+    
+    // FOR LOOP
+    for(auto i{0u}; i<3; i++){
+      ImGui::Columns(3);
 
-    // Nx50 button, where N is the remaining width available
-    ImGui::Button("Press me!", ImVec2(-1, 50));
-    // See also IsItemHovered, IsItemActive, etc
-    if (ImGui::IsItemClicked()) {
-      fmt::print("Button pressed.\n");
+      for(auto j{0u}; j<3; j++){
+        char pos = ttt.getPosition(i, j);
+        std::string label = fmt::format("{}##{}{}", pos, i, j);
+        bool press = ImGui::Button(label.c_str(), ImVec2(50, 50));
+        if( press ) ttt.play(i,j);
+
+        ImGui::NextColumn();
+      }
+      ImGui::Separator();
     }
-
-    static bool enabled{true};
-    ImGui::Checkbox("Some option", &enabled);
-    //fmt::print("The checkbox is {}\n", enabled ? "enabled" : "disabled");
-
-    static std::size_t currentIndex{};
-    std::vector<std::string> comboItems{"AAA", "BBB", "CCC"};
-
-    if (ImGui::BeginCombo("Combo box", comboItems.at(currentIndex).c_str())) {
-    for (auto index{0u}; index < comboItems.size(); ++index) {
-        const bool isSelected{currentIndex == index};
-        if (ImGui::Selectable(comboItems.at(index).c_str(), isSelected))
-        currentIndex = index;
-
-        // Set the initial focus when opening the combo (scrolling + keyboard
-        // navigation focus)
-        if (isSelected) ImGui::SetItemDefaultFocus();
-    }
-    ImGui::EndCombo();
-    }
-
-    fmt::print("Selected combo box item: {}\n", comboItems.at(currentIndex));
-
+    
     // Window end
     ImGui::End();
   }

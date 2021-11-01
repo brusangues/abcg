@@ -14,7 +14,8 @@ ABCg is licensed under the MIT License. See [LICENSE](https://github.com/hbatage
 build.bat
 
 :: Run
-.\build\bin\helloworld\helloworld.exe
+.\build\bin\helloworld\helloworld.exe | cat
+.\build\bin\tictactoe\tictactoe.exe | cat
 
 :: Web assembly
 C:\emsdk\emsdk_env.bat
