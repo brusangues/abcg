@@ -39,28 +39,39 @@ void OpenGLWindow::paintUI() {
     // If this is the first frame, set initial position of our window
     static bool firstTime{true};
     if (firstTime) {
-      ImGui::SetNextWindowPos(ImVec2(5, 75));
-      ImGui::SetNextWindowSize(ImVec2(300,300));
+      ImGui::SetNextWindowPos(ImVec2(0,0));
+      ImGui::SetNextWindowSize(ImVec2(190,300));
       firstTime = false;
     }
 
     // Window begin
-    ImGui::Begin("Tit-Tac-Toe!");
+    ImGui::Begin("Tit-Tac-Toe!", NULL, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoMove );
 
-    // Static text
-    ImGui::Text("%c turn", ttt.getPlayer());
+    // Turn indicator
+    char win = ttt.getWinner();
+    if(win != ' '){
+      if(win != 'D')
+        ImGui::Text("%c is the winner!", ttt.getWinner());
+      else
+        ImGui::Text("Draw!");
+    }
+    else{
+      ImGui::Text("%c's turn.", ttt.getPlayer());
+    }
+    ImGui::Text("Turn count %d", ttt.getTurn());
 
     // 100x50 button
-    if (ImGui::Button("Print board")) {
+    if (ImGui::Button("Print board", ImVec2(-1, 0))) {
       fmt::print("Board:\n");
       ttt.printBoard();
     }
     
-    // FOR LOOP
+    // Game Loop
     for(auto i{0u}; i<3; i++){
       ImGui::Columns(3);
 
       for(auto j{0u}; j<3; j++){
+        ImGui::SetColumnWidth(j,62);
         char pos = ttt.getPosition(i, j);
         std::string label = fmt::format("{}##{}{}", pos, i, j);
         bool press = ImGui::Button(label.c_str(), ImVec2(50, 50));
@@ -68,9 +79,17 @@ void OpenGLWindow::paintUI() {
 
         ImGui::NextColumn();
       }
+      
       ImGui::Separator();
     }
-    
+
+    ImGui::Columns(1);
+
+    // Restart
+    if(ImGui::Button("Restart Game", ImVec2(-1, 0))){
+      ttt.restart();
+    }
+
     // Window end
     ImGui::End();
   }

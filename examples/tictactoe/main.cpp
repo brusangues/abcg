@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
     
     // Create OpenGL window
     auto window{std::make_unique<OpenGLWindow>()};// smart pointer creation
-    window->setWindowSettings({.title = "First App"});// window title definition; 
+    window->setWindowSettings({.title = "Tic-Tac-Toe"});//, .width=200, .height=400});// window title definition; 
     
     // Run application
     app.run(std::move(window));// abcg::Application::run is called

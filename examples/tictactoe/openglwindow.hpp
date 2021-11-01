@@ -22,6 +22,13 @@ class Game {
       board = {{' ',' ',' '}, {' ',' ',' '}, {' ',' ',' '}};
     }
 
+    void restart(){
+      player = 'X';
+      winner = ' ';
+      turn = 0;
+      board = {{' ',' ',' '}, {' ',' ',' '}, {' ',' ',' '}};
+    }
+
     char getPlayer(){
       return player;
     }
@@ -108,7 +115,7 @@ class Game {
     }
 
     bool checkDraw(){
-      if(turn>9){
+      if(turn>=8){
         winner = 'D';
         fmt::print("DRAW\n");
         return true;
@@ -116,10 +123,11 @@ class Game {
       return false;
     }
 
+    bool checkEnd(){
+      return checkWinner() || checkDraw();
+    }
+
     void nextTurn(){
-      if( checkWinner() || checkDraw() ){
-        return;
-      }
       if(player == 'X'){
         setPlayer('O');
       }
@@ -130,16 +138,21 @@ class Game {
     }
 
     bool play(int i, int j){
-      if(getPosition(i,j) == ' '){
-        fmt::print("Valid play at {} {}\n", i, j);
-        if( !(checkWinner() || checkDraw()) ){
+      if(getWinner()==' '){
+        if(getPosition(i,j) == ' '){
+          fmt::print("Valid play: {} at {},{}\n", getPlayer(), i, j);
           setPosition(i,j);
+          checkEnd();
           nextTurn();
+          return true;
         }
-        return true;
+        else{
+          fmt::print("Invalid play: {} at {},{}\n", getPlayer(), i, j);
+          return false;
+        }
       }
       else{
-        fmt::print("Invalid play at {} {}\n", i, j);
+        fmt::print("Game ended: {}\n", getWinner());
         return false;
       }
     }
