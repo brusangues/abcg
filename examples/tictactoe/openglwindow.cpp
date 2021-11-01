@@ -10,12 +10,163 @@
 #include <gsl/gsl>
 #include <string>
 
+class Game {
+  private:
+    char player;
+    char winner;
+    int turn;
+    std::vector<std::vector<char> > board;
+
+  public:
+    Game() {
+      player = 'X';
+      winner = ' ';
+      turn = 0;
+      board = {{' ',' ',' '}, {' ',' ',' '}, {' ',' ',' '}};
+    }
+
+    void restart(){
+      player = 'X';
+      winner = ' ';
+      turn = 0;
+      board = {{' ',' ',' '}, {' ',' ',' '}, {' ',' ',' '}};
+    }
+
+    char getPlayer(){
+      return player;
+    }
+    void setPlayer(char p){
+      player = p;
+    }
+    char getWinner(){
+      return winner;
+    }
+    int getTurn(){
+      return turn;
+    }
+    char getPosition(int i, int j){
+      return board.at(i).at(j);
+    }
+    void setPosition(int i, int j){
+      board.at(i).at(j) = getPlayer();
+    }
+
+    void printBoard(){
+      for (auto i{0u}; i < board.size(); i++){
+        for (auto j{0u}; j < board.at(i).size(); j++){
+          fmt::print("{} ", board.at(i).at(j));
+        }
+        fmt::print("\n");
+      }
+    }
+
+    bool checkWinner(){
+      int win = 0;
+      // Rows check
+      for (auto i{0u}; i < board.size(); i++){
+        for (auto j{0u}; j < board.at(i).size(); j++){
+          if(getPosition(i, j) == getPlayer())
+            win++;
+        }
+        if(win == 3){
+          winner = getPlayer();
+          fmt::print("WINNER:{}\n", getWinner());
+          return true;
+        }
+        win = 0;
+      }
+
+      // Columns check
+      for (auto i{0u}; i < board.size(); i++){
+        for (auto j{0u}; j < board.at(i).size(); j++){
+          if(getPosition(j, i) == getPlayer())
+            win++;
+        }
+        if(win == 3){
+          winner = getPlayer();
+          fmt::print("WINNER:{}\n", getWinner());
+          return true;
+        }
+        win = 0;
+      }
+
+      // First diagonal check
+      for (auto i{0u}; i < board.size(); i++){
+        if(getPosition(i, i) == getPlayer())
+            win++;
+      }
+      if(win == 3){
+        winner = getPlayer();
+        fmt::print("WINNER:{}\n", getWinner());
+        return true;
+      }
+      win = 0;
+
+      // Second diagonal check
+      for (auto i{0u}; i < board.size(); i++){
+        if(getPosition(i, 2-i) == getPlayer())
+            win++;
+      }
+      if(win == 3){
+        winner = getPlayer();
+        fmt::print("WINNER:{}\n", getWinner());
+        return true;
+      }
+      win = 0;
+
+      return false;
+    }
+
+    bool checkDraw(){
+      if(turn>=8){
+        winner = 'D';
+        fmt::print("DRAW\n");
+        return true;
+      }
+      return false;
+    }
+
+    bool checkEnd(){
+      return checkWinner() || checkDraw();
+    }
+
+    void nextTurn(){
+      if(player == 'X'){
+        setPlayer('O');
+      }
+      else{
+        setPlayer('X');
+      }
+      turn++;
+    }
+
+    bool play(int i, int j){
+      if(getWinner()==' '){
+        if(getPosition(i,j) == ' '){
+          fmt::print("Valid play: {} at {},{}\n", getPlayer(), i, j);
+          setPosition(i,j);
+          checkEnd();
+          nextTurn();
+          return true;
+        }
+        else{
+          fmt::print("Invalid play: {} at {},{}\n", getPlayer(), i, j);
+          return false;
+        }
+      }
+      else{
+        fmt::print("Game ended: {}\n", getWinner());
+        return false;
+      }
+    }
+
+};
+
 void OpenGLWindow::initializeGL() {
   // called only once
   auto windowSettings{getWindowSettings()};
-  fmt::print("Initial window size: {}x{}\n", windowSettings.width,
-             windowSettings.height);
-  ttt.printBoard();
+  fmt::print("Initial window size: {}x{}\n", 
+             windowSettings.width, windowSettings.height);
 }
 
 void OpenGLWindow::paintGL() {
@@ -31,17 +182,16 @@ void OpenGLWindow::paintGL() {
 void OpenGLWindow::paintUI() {
   // Called every time paintGL is called
 
-  // Parent class will show fullscreen button and FPS meter
-  //abcg::OpenGLWindow::paintUI();
-
   // Our own ImGui widgets go below
   {
     // If this is the first frame, set initial position of our window
     static bool firstTime{true};
+    static Game ttt{Game()};
     if (firstTime) {
       ImGui::SetNextWindowPos(ImVec2(0,0));
       ImGui::SetNextWindowSize(ImVec2(190,300));
       firstTime = false;
+      ttt.printBoard();
     }
 
     // Window begin
