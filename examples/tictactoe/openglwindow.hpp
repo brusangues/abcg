@@ -10,18 +10,16 @@
 class Game {
   private:
     char player;
+    char winner;
     int turn;
-    std::vector<std::vector<char> > board;// = {
-      // {' ',' ',' '},
-      // {' ',' ',' '},
-      // {' ',' ',' '}
-      // };
-    
+    std::vector<std::vector<char> > board;
+
   public:
     Game() {
-      board = {{' ',' ',' '}, {' ',' ',' '}, {' ',' ',' '}};
       player = 'X';
+      winner = ' ';
       turn = 0;
+      board = {{' ',' ',' '}, {' ',' ',' '}, {' ',' ',' '}};
     }
 
     char getPlayer(){
@@ -29,6 +27,18 @@ class Game {
     }
     void setPlayer(char p){
       player = p;
+    }
+    char getWinner(){
+      return winner;
+    }
+    int getTurn(){
+      return turn;
+    }
+    char getPosition(int i, int j){
+      return board.at(i).at(j);
+    }
+    void setPosition(int i, int j){
+      board.at(i).at(j) = getPlayer();
     }
 
     void printBoard(){
@@ -40,11 +50,76 @@ class Game {
       }
     }
 
-    char getPosition(int i, int j){
-      return board.at(i).at(j);
+    bool checkWinner(){
+      int win = 0;
+      // Rows check
+      for (auto i{0u}; i < board.size(); i++){
+        for (auto j{0u}; j < board.at(i).size(); j++){
+          if(getPosition(i, j) == getPlayer())
+            win++;
+        }
+        if(win == 3){
+          winner = getPlayer();
+          fmt::print("WINNER:{}\n", getWinner());
+          return true;
+        }
+        win = 0;
+      }
+
+      // Columns check
+      for (auto i{0u}; i < board.size(); i++){
+        for (auto j{0u}; j < board.at(i).size(); j++){
+          if(getPosition(j, i) == getPlayer())
+            win++;
+        }
+        if(win == 3){
+          winner = getPlayer();
+          fmt::print("WINNER:{}\n", getWinner());
+          return true;
+        }
+        win = 0;
+      }
+
+      // First diagonal check
+      for (auto i{0u}; i < board.size(); i++){
+        if(getPosition(i, i) == getPlayer())
+            win++;
+      }
+      if(win == 3){
+        winner = getPlayer();
+        fmt::print("WINNER:{}\n", getWinner());
+        return true;
+      }
+      win = 0;
+
+      // Second diagonal check
+      for (auto i{0u}; i < board.size(); i++){
+        if(getPosition(i, 2-i) == getPlayer())
+            win++;
+      }
+      if(win == 3){
+        winner = getPlayer();
+        fmt::print("WINNER:{}\n", getWinner());
+        return true;
+      }
+      win = 0;
+
+      return false;
+    }
+
+    bool checkDraw(){
+      if(turn>9){
+        winner = 'D';
+        fmt::print("DRAW\n");
+        return true;
+      }
+      return false;
     }
 
     void nextTurn(){
+      if( checkWinner() || checkDraw() ){
+        return;
+      }
       if(player == 'X'){
         setPlayer('O');
       }
@@ -55,10 +130,12 @@ class Game {
     }
 
     bool play(int i, int j){
-      if(board.at(i).at(j) == ' '){
+      if(getPosition(i,j) == ' '){
         fmt::print("Valid play at {} {}\n", i, j);
-        board.at(i).at(j) = player;
-        nextTurn();
+        if( !(checkWinner() || checkDraw()) ){
+          setPosition(i,j);
+          nextTurn();
+        }
         return true;
       }
       else{
