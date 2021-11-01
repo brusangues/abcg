@@ -11,10 +11,10 @@ class OpenGLWindow : public abcg::OpenGLWindow {
   protected:
     void initializeGL() override;
     void paintGL() override;
-    void paintUI() override;
-    void resizeGL(int width, int height) override;
+    //void paintUI() override;
+    //void resizeGL(int width, int height) override;
       //called by abcg every time the window size is changed
-    void terminateGL() override;
+    //void terminateGL() override;
       //called by abcg when the window is destroyed.
 
   private:
