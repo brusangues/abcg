@@ -47,7 +47,7 @@ class OpenGLWindow : public abcg::OpenGLWindow {
       glm::vec4{1.00f, 0.69f, 0.30f, 1.0f}};
 
     // Create resorces m_vao and m_vboVertices.
-    // Called every time a new point P needs to be drawn.
+    // Called every time a new triangle needs to be drawn.
     void setupModel();
 };
 #endif
