@@ -19,7 +19,7 @@ int main(int argc, char **argv) {
     window->setWindowSettings(
       {.width = 600,
        .height = 600,
-       .title = "Colored Triangles"
+       .title = "Regular Polygons"
     });
     
     // Run application

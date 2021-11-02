@@ -1,29 +1,31 @@
 #include "openglwindow.hpp"
 
 #include <imgui.h>
-
-#include <glm/vec2.hpp>
-#include <glm/vec3.hpp>
+#include <fmt/core.h>
+#include <cppitertools/itertools.hpp>
 
 #include "abcg.hpp"
-
-#include <chrono>
-#include <fmt/core.h>
 
 void OpenGLWindow::initializeGL() {
   // Vertex shader definition.
   // Contains point size definition,
   // color and position is passed through.
+  // Uniform variables: defined before each render.
+  // These are global variables shared by all vertices in the buffer, 
+  // different from 'in' variables.
   const auto *vertexShader{R"gl(
     #version 410
     layout(location = 0) in vec2 inPosition;
     layout(location = 1) in vec4 inColor;
 
+    uniform vec2 translation;
+    uniform float scale;
+
     out vec4 fragColor;
 
     void main() {
-      gl_PointSize = 2.0;
-      gl_Position = vec4(inPosition, 0, 1);
+      vec2 newPosition = inPosition * scale + translation;
+      gl_Position = vec4(newPosition, 0, 1);
       fragColor = inColor;
     }
   )gl"};
@@ -53,47 +55,64 @@ void OpenGLWindow::initializeGL() {
   m_randomEngine.seed(seed);
 
   // Color blend test
-  glEnable(GL_BLEND);
-  glBlendEquation(GL_FUNC_ADD);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
+  //glEnable(GL_BLEND);
+  //glBlendEquation(GL_FUNC_ADD);
+  //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
 }
 
-void OpenGLWindow::setupModel() {
-  // Release previous VBO and VAO, if defined previously
+void OpenGLWindow::setupModel(int sides) {
+  // Release previous resources, if any
   abcg::glDeleteBuffers(1, &m_vboPositions);
   abcg::glDeleteBuffers(1, &m_vboColors);
   abcg::glDeleteVertexArrays(1, &m_vao);
 
-  // Create vertex positions
-  std::uniform_real_distribution<float> rd(-1.5f, 1.5f);
-  std::array positions{glm::vec2(rd(m_randomEngine), rd(m_randomEngine)),
-                       glm::vec2(rd(m_randomEngine), rd(m_randomEngine)),
-                       glm::vec2(rd(m_randomEngine), rd(m_randomEngine))};
-  
-  // Create vertex colors
-  std::vector<glm::vec4> colors(0);
-  colors.emplace_back(m_vertexColors[0]);
-  colors.emplace_back(m_vertexColors[1]);
-  colors.emplace_back(m_vertexColors[2]);
+  // Select random colors for the radial gradient
+  std::uniform_real_distribution<float> rd(0.0f, 1.0f);
+  const glm::vec3 color1{rd(m_randomEngine), rd(m_randomEngine),
+                         rd(m_randomEngine)};
+  const glm::vec3 color2{rd(m_randomEngine), rd(m_randomEngine),
+                         rd(m_randomEngine)};
+
+  // Minimum number of sides is 3
+  sides = std::max(3, sides);       
+
+  // Colors and sides vectors initialization
+  std::vector<glm::vec2> positions(0);
+  std::vector<glm::vec3> colors(0);
+
+  // Polygon center
+  positions.emplace_back(0, 0);
+  colors.push_back(color1);
+
+  // Border vertices
+  const auto step{M_PI * 2 / sides};
+  for (const auto angle : iter::range(0.0, M_PI * 2, step)) {
+    positions.emplace_back(std::cos(angle), std::sin(angle));
+    colors.push_back(color2);
+  }
+
+  // Duplicate second vertex
+  positions.push_back(positions.at(1));
+  colors.push_back(color2);
 
   // Generate VBO of positions
   abcg::glGenBuffers(1, &m_vboPositions); // Creates buffer object id
   abcg::glBindBuffer(GL_ARRAY_BUFFER, m_vboPositions); // Binds buffer object as VBO
   abcg::glBufferData(GL_ARRAY_BUFFER, // Allocates memory and init buffer with contents copied from a cpu resource
-    sizeof(positions), positions.data(), GL_STATIC_DRAW); // Static draw indicates the buffer will be modified only once, but may be used many times
+    positions.size() * sizeof(glm::vec2), positions.data(), GL_STATIC_DRAW); // Static draw indicates the buffer will be modified only once, but may be used many times
   abcg::glBindBuffer(GL_ARRAY_BUFFER, 0); // Not needed anymore
   
   // Generate VBO of colors
   abcg::glGenBuffers(1, &m_vboColors);
   abcg::glBindBuffer(GL_ARRAY_BUFFER, m_vboColors);
   abcg::glBufferData(GL_ARRAY_BUFFER, 
-    colors.size() * sizeof(glm::vec4), colors.data(), GL_STATIC_DRAW);
+    colors.size() * sizeof(glm::vec3), colors.data(), GL_STATIC_DRAW);
   abcg::glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   // Get location of attributes in the program
   // Could be omitted, but is kept for sanity.
-  GLint positionAttribute{abcg::glGetAttribLocation(m_program, "inPosition")}; // returns 0
-  GLint colorAttribute{abcg::glGetAttribLocation(m_program, "inColor")}; // returns 1
+  const auto positionAttribute{abcg::glGetAttribLocation(m_program, "inPosition")}; // returns 0
+  const auto colorAttribute{abcg::glGetAttribLocation(m_program, "inColor")}; // returns 1
 
   // Create VAO
   // Stores specification state of VBOs with the vertex shader.
@@ -108,11 +127,17 @@ void OpenGLWindow::setupModel() {
   abcg::glBindBuffer(GL_ARRAY_BUFFER, m_vboPositions);
   abcg::glVertexAttribPointer(positionAttribute, 2, GL_FLOAT, GL_FALSE, 0,
                               nullptr);
+  //void glVertexAttribPointer(GLuint index,
+  //                         GLint size, - number of components of attr (vec2, vec3)
+  //                         GLenum type, - type of data of each value
+  //                         GLboolean normalized, - should ints be normalized to [-1,1] or [0,1]
+  //                         GLsizei stride, - number of bytes in between positions.
+  //                         const void * pointer); - displacement in bytes for the first component position.
   abcg::glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   abcg::glEnableVertexAttribArray(colorAttribute);
   abcg::glBindBuffer(GL_ARRAY_BUFFER, m_vboColors);
-  abcg::glVertexAttribPointer(colorAttribute, 4, GL_FLOAT, GL_FALSE, 0,
+  abcg::glVertexAttribPointer(colorAttribute, 3, GL_FLOAT, GL_FALSE, 0,
                               nullptr);
   abcg::glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -121,22 +146,40 @@ void OpenGLWindow::setupModel() {
 }
 
 void OpenGLWindow::paintGL() {
-  // Create OpenGL buffers for the single point at m_P
-  setupModel();
+  // Check whether to render the next polygon
+  if (m_elapsedTimer.elapsed() < m_delay / 1000.0) return;
+  m_elapsedTimer.restart();
+
+  // Create a regular polygon with a number of sides in the range [3,20]
+  std::uniform_int_distribution<int> intDist(3, 20);
+  const auto sides{intDist(m_randomEngine)};
+  setupModel(sides);
 
   // Set the viewport
   abcg::glViewport(0, 0, m_viewportWidth, m_viewportHeight);
-
   // Start using the shader program
   abcg::glUseProgram(m_program);
+
+  // Choose a random xy position from (-1,-1) to (1,1)
+  std::uniform_real_distribution<float> rd1(-1.0f, 1.0f);
+  const glm::vec2 translation{rd1(m_randomEngine), rd1(m_randomEngine)};
+  const GLint translationLocation{
+      abcg::glGetUniformLocation(m_program, "translation")};
+  abcg::glUniform2fv(translationLocation, 1, &translation.x); // Uniform variable attribution
+
+  // Choose a random scale factor (1% to 25%)
+  std::uniform_real_distribution<float> rd2(0.01f, 0.25f);
+  const auto scale{rd2(m_randomEngine)};
+  const GLint scaleLocation{abcg::glGetUniformLocation(m_program, "scale")};
+  abcg::glUniform1f(scaleLocation, scale); // Uniform variable attribution
+
+  // Render
   // Start using VAO
   abcg::glBindVertexArray(m_vao);
-
   // Draw triangles
-  abcg::glDrawArrays(GL_TRIANGLES, 0, 3);
+  abcg::glDrawArrays(GL_TRIANGLE_FAN, 0, sides + 2);
     //               mode, init index, number of vertices to be processed,...
     // parallel async function
-  
   // End using VAO
   abcg::glBindVertexArray(0);
   // End using the shader program
@@ -162,24 +205,25 @@ void OpenGLWindow::terminateGL() {
 }
 
 void OpenGLWindow::paintUI() {
-  // Color edit interface
   abcg::OpenGLWindow::paintUI();
+
   {
-    auto widgetSize{ImVec2(250, 90)};
+    const auto widgetSize{ImVec2(200, 72)};
     ImGui::SetNextWindowPos(ImVec2(m_viewportWidth - widgetSize.x - 5,
                                    m_viewportHeight - widgetSize.y - 5));
     ImGui::SetNextWindowSize(widgetSize);
-    auto windowFlags{ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar};
+    const auto windowFlags{ImGuiWindowFlags_NoResize |
+                           ImGuiWindowFlags_NoCollapse |
+                           ImGuiWindowFlags_NoTitleBar};
     ImGui::Begin(" ", nullptr, windowFlags);
 
-    // Edit vertex colors
-    auto colorEditFlags{ImGuiColorEditFlags_NoTooltip |
-                        ImGuiColorEditFlags_NoPicker};
-    ImGui::PushItemWidth(215);
-    ImGui::ColorEdit3("v0", &m_vertexColors[0].x, colorEditFlags);
-    ImGui::ColorEdit3("v1", &m_vertexColors[1].x, colorEditFlags);
-    ImGui::ColorEdit3("v2", &m_vertexColors[2].x, colorEditFlags);
+    ImGui::PushItemWidth(140);
+    ImGui::SliderInt("Delay", &m_delay, 0, 200, "%d ms");
     ImGui::PopItemWidth();
+
+    if (ImGui::Button("Clear window", ImVec2(-1, 30))) {
+      abcg::glClear(GL_COLOR_BUFFER_BIT);
+    }
 
     ImGui::End();
   }

@@ -1,8 +1,6 @@
 #ifndef OPENGLWINDOW_HPP_
 #define OPENGLWINDOW_HPP_
 
-#include <array>
-#include <glm/vec2.hpp>
 #include <random>
 
 #include "abcg.hpp"
@@ -41,13 +39,11 @@ class OpenGLWindow : public abcg::OpenGLWindow {
     std::default_random_engine m_randomEngine;
 
     // Array containing colors that will be later copied to m_vertexColors
-    std::array<glm::vec4, 3> m_vertexColors{
-      glm::vec4{0.36f, 0.83f, 1.00f, 0.5f},
-      glm::vec4{0.63f, 0.00f, 0.61f, 0.5f},
-      glm::vec4{1.00f, 0.69f, 0.30f, 0.5f}};
+    int m_delay{200};
+    abcg::ElapsedTimer m_elapsedTimer;
 
     // Create resorces m_vao and m_vboVertices.
     // Called every time a new triangle needs to be drawn.
-    void setupModel();
+    void setupModel(int sides);
 };
 #endif
