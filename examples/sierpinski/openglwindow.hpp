@@ -9,25 +9,33 @@
 
 class OpenGLWindow : public abcg::OpenGLWindow {
   protected:
+    // called only once
     void initializeGL() override;
+    // called every frame
     void paintGL() override;
-    //void paintUI() override;
-    //void resizeGL(int width, int height) override;
-      //called by abcg every time the window size is changed
-    //void terminateGL() override;
-      //called by abcg when the window is destroyed.
+    // called every time paintGL is called
+    void paintUI() override;
+    // called by abcg every time the window size is changed
+    void resizeGL(int width, int height) override;
+    // called by abcg when the window is destroyed.
+    void terminateGL() override;
 
   private:
     // OpenGL allocated resources
+
+    // Vertex Array Object - vbo configs
     GLuint m_vao{};
+    // Vertex Buffer Object - stores vertexes attributes
     GLuint m_vboVertices{};
+    // Stores shader
     GLuint m_program{};
 
     // Window size informed by resizeGL
     int m_viewportWidth{};
+    // Window size informed by resizeGL
     int m_viewportHeight{};
 
-
+    // Random number generator for initial P position, and ABC choice.
     std::default_random_engine m_randomEngine;
 
     // Array containing positions of points A,B and C
