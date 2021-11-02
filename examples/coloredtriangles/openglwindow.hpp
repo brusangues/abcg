@@ -42,9 +42,9 @@ class OpenGLWindow : public abcg::OpenGLWindow {
 
     // Array containing colors that will be later copied to m_vertexColors
     std::array<glm::vec4, 3> m_vertexColors{
-      glm::vec4{0.36f, 0.83f, 1.00f, 1.0f},
-      glm::vec4{0.63f, 0.00f, 0.61f, 1.0f},
-      glm::vec4{1.00f, 0.69f, 0.30f, 1.0f}};
+      glm::vec4{0.36f, 0.83f, 1.00f, 0.5f},
+      glm::vec4{0.63f, 0.00f, 0.61f, 0.5f},
+      glm::vec4{1.00f, 0.69f, 0.30f, 0.5f}};
 
     // Create resorces m_vao and m_vboVertices.
     // Called every time a new triangle needs to be drawn.

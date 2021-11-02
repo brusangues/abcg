@@ -51,6 +51,11 @@ void OpenGLWindow::initializeGL() {
   // seed is based on current processor time.
   auto seed{std::chrono::steady_clock::now().time_since_epoch().count()};
   m_randomEngine.seed(seed);
+
+  // Color blend test
+  glEnable(GL_BLEND);
+  glBlendEquation(GL_FUNC_ADD);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
 }
 
 void OpenGLWindow::setupModel() {
