@@ -47,7 +47,7 @@ void OpenGLWindow::initializeGL() {
 
   // Randomly choose a pair of coordinates in the interval [-1; 1]
   std::uniform_real_distribution<float> realDistribution(-1.0f, 1.0f);
-  
+
   //std::gamma_distribution<float> gammaDistribution(-1.0f, 1.0f);
 
   m_P.x = realDistribution(m_randomEngine);
